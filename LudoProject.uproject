@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.26",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "LudoProject",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

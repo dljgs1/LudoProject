@@ -23,7 +23,7 @@ ALudoProjectBlockGrid::ALudoProjectBlockGrid()
 
 	// Set defaults
 	Size = 3;
-	BlockSpacing = 300.f;
+	MaxWidth = 900.f;
 }
 
 
@@ -39,9 +39,14 @@ void ALudoProjectBlockGrid::BeginPlay()
 		TCHAR* TxtData = TxtStream.GetCharArray().GetData();
 		for (int i = 0; i < TxtStream.Len(); i++)
 		{
-			if (TxtData[i] >= '0' && TxtData[i] <= '9' )
+			if (TxtData[i] >= '0' && TxtData[i] <= '9')
 			{
 				int32 Num = (int32)(TxtData[i] - '0');
+				NumArray.Add(Num);
+			}
+			if (TxtData[i] >= 'a' && TxtData[i] <= 'z')
+			{
+				int32 Num = -(int32)(TxtData[i] - 'a');
 				NumArray.Add(Num);
 			}
 		}
@@ -51,7 +56,9 @@ void ALudoProjectBlockGrid::BeginPlay()
 	{
 		NumArray = { 0,2,3,0,5,6,0,8,9 };
 	}
-	BlockSpacing = 900.0 / Size;
+
+
+	float BlockSpacing = MaxWidth / Size;
 	// Number of blocks
 	const int32 NumBlocks = Size * Size;
 

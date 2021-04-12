@@ -19,7 +19,7 @@ class ALudoProjectBlockGrid : public AActor
 
 	/** Text component for the score */
 	UPROPERTY(Category = Grid, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UTextRenderComponent* ScoreText;
+		class UTextRenderComponent* ScoreText;
 
 public:
 	ALudoProjectBlockGrid();
@@ -32,8 +32,8 @@ public:
 	int32 Size;
 
 	/** Spacing of blocks */
-	UPROPERTY(Category=Grid, EditAnywhere, BlueprintReadOnly)
-	float BlockSpacing;
+	UPROPERTY(Category=Grid, EditAnywhere, BlueprintReadWrite)
+	float MaxWidth;
 
 	UPROPERTY(Category = Grid, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ALudoProjectBlock> BPBlockClass;

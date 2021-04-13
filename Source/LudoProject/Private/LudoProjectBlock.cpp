@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstance.h"
+#include "GameLogic/LudoRoute.h"
 
 ALudoProjectBlock::ALudoProjectBlock()
 {
@@ -16,11 +17,17 @@ ALudoProjectBlock::ALudoProjectBlock()
 		ConstructorHelpers::FObjectFinderOptional<UMaterial> BaseMaterial;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> BlueMaterial;
 		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> OrangeMaterial;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> GreenMaterial;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> RedMaterial;
+		ConstructorHelpers::FObjectFinderOptional<UMaterialInstance> BlackMaterial;
 		FConstructorStatics()
 			: PlaneMesh(TEXT("/Game/Puzzle/Meshes/PuzzleCube.PuzzleCube"))
 			, BaseMaterial(TEXT("/Game/Puzzle/Meshes/BaseMaterial.BaseMaterial"))
 			, BlueMaterial(TEXT("/Game/Puzzle/Meshes/BlueMaterial.BlueMaterial"))
 			, OrangeMaterial(TEXT("/Game/Puzzle/Meshes/OrangeMaterial.OrangeMaterial"))
+			, GreenMaterial(TEXT("/Game/Puzzle/Meshes/GreenMaterial.GreenMaterial"))
+			, RedMaterial(TEXT("/Game/Puzzle/Meshes/RedMaterial.RedMaterial"))
+			, BlackMaterial(TEXT("/Game/Puzzle/Meshes/BlackMaterial.BlackMaterial"))
 		{
 		}
 	};
@@ -44,6 +51,9 @@ ALudoProjectBlock::ALudoProjectBlock()
 	BaseMaterial = ConstructorStatics.BaseMaterial.Get();
 	BlueMaterial = ConstructorStatics.BlueMaterial.Get();
 	OrangeMaterial = ConstructorStatics.OrangeMaterial.Get();
+	GreenMaterial = ConstructorStatics.GreenMaterial.Get();
+	RedMaterial = ConstructorStatics.RedMaterial.Get();
+	BlackMaterial = ConstructorStatics.BlackMaterial.Get();
 }
 
 void ALudoProjectBlock::BlockClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
@@ -90,5 +100,30 @@ void ALudoProjectBlock::Highlight(bool bOn)
 	else
 	{
 		BlockMesh->SetMaterial(0, BlueMaterial);
+	}
+}
+
+void ALudoProjectBlock::SetBlockStyle(int32 type)
+{
+	switch ((ERouteType)type)
+	{
+	case ERouteType::ERoute:
+	case ERouteType::EParking:
+		BlockMesh->SetMaterial(0, BaseMaterial);
+		break;
+	case ERouteType::EFinalP1:
+		BlockMesh->SetMaterial(0, RedMaterial);
+		break;
+	case ERouteType::EFinalP2:
+		BlockMesh->SetMaterial(0, GreenMaterial);
+		break;
+	case ERouteType::EFinalP3:
+		BlockMesh->SetMaterial(0, BlueMaterial);
+		break;
+	case ERouteType::EFinalP4:
+		BlockMesh->SetMaterial(0, OrangeMaterial);
+		break;
+	default:
+		break;
 	}
 }

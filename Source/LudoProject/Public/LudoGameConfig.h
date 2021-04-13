@@ -7,11 +7,18 @@
 #include "LudoGameConfig.generated.h"
 
 UCLASS(Config=Game)
-class ALudoGameConfig : public AActor
+class ULudoGameConfig : public UObject
 {
 GENERATED_BODY()
 public:
 	UPROPERTY(Config)
-		int32 DirectionCode=0;
-		ALudoGameConfig();
+		int32 DirectionCode = 0;
+	UPROPERTY(Config)
+		int32 P1Start = 0;
+	UPROPERTY(Config)
+		int32 P2Start = 0;
+	UPROPERTY(Config)
+		int32 P3Start = 0;
+	UPROPERTY(Config)
+		int32 P4Start = 0;
 };

@@ -2,7 +2,3 @@
 
 #include "LudoGameConfig.h"
 
-ALudoGameConfig::ALudoGameConfig()
-{
-
-}

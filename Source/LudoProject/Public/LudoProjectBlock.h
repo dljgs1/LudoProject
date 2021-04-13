@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "LudoProjectBlock.generated.h"
 
+
+
+
+
 /** A block that can be clicked */
 UCLASS(minimalapi)
 class ALudoProjectBlock : public AActor
@@ -36,7 +40,13 @@ public:
 
 	/** Pointer to orange material used on active blocks */
 	UPROPERTY()
-	class UMaterialInstance* OrangeMaterial;
+		class UMaterialInstance* OrangeMaterial;
+	UPROPERTY()
+		class UMaterialInstance* GreenMaterial;
+	UPROPERTY()
+		class UMaterialInstance* RedMaterial;
+	UPROPERTY()
+		class UMaterialInstance* BlackMaterial;
 
 	/** Grid that owns us */
 	UPROPERTY()
@@ -59,6 +69,11 @@ public:
 	FORCEINLINE class USceneComponent* GetDummyRoot() const { return DummyRoot; }
 	/** Returns BlockMesh subobject **/
 	FORCEINLINE class UStaticMeshComponent* GetBlockMesh() const { return BlockMesh; }
+
+
+	/////////////////
+	void SetBlockStyle(int32 type);
+
 };
 
 

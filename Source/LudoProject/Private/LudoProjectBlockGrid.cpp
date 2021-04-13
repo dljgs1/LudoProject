@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "HAL/PlatformFilemanager.h"
 #include "FileHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "LudoProjectGameMode.h"
 
 #define LOCTEXT_NAMESPACE "PuzzleBlockGrid"
 
@@ -30,68 +32,44 @@ ALudoProjectBlockGrid::ALudoProjectBlockGrid()
 void ALudoProjectBlockGrid::BeginPlay()
 {
 	Super::BeginPlay();
-	FString TxtStream;
-	TArray<int32> NumArray;
-	FString TxtPath = (FPaths::ProjectContentDir() + TEXT("MapConfig.txt"));
-	if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*TxtPath))
+	ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (!CurGameMode)
 	{
-		FFileHelper::LoadFileToString(TxtStream, *TxtPath);
-		TCHAR* TxtData = TxtStream.GetCharArray().GetData();
-		for (int i = 0; i < TxtStream.Len(); i++)
-		{
-			if (TxtData[i] >= '0' && TxtData[i] <= '9')
-			{
-				int32 Num = (int32)(TxtData[i] - '0');
-				NumArray.Add(Num);
-			}
-			if (TxtData[i] >= 'a' && TxtData[i] <= 'z')
-			{
-				int32 Num = -(int32)(TxtData[i] - 'a');
-				NumArray.Add(Num);
-			}
-		}
-		Size = (int32)FMath::Sqrt(NumArray.Num());
+		return;
 	}
-	else
-	{
-		NumArray = { 0,2,3,0,5,6,0,8,9 };
-	}
-
-
+	Size = CurGameMode->MapWidth;
 	float BlockSpacing = MaxWidth / Size;
-	// Number of blocks
-	const int32 NumBlocks = Size * Size;
-
-	// Loop to spawn each block
-	for(int32 BlockIndex=0; BlockIndex<NumBlocks; BlockIndex++)
+	for (int32 x = 0; x < Size; x++)
 	{
-		if (NumArray[BlockIndex] == 0)
+		for (int32 y = 0; y < Size; y++)
 		{
-			continue;
-		}
-		const float XOffset = (BlockIndex/Size) * BlockSpacing; // Divide by dimension
-		const float YOffset = (BlockIndex%Size) * BlockSpacing; // Modulo gives remainder
+			int32 Number = CurGameMode->MapArray[x][y];
+			if (Number == 0)
+			{
+				continue;
+			}
+			const float XOffset = x * BlockSpacing;
+			const float YOffset = y * BlockSpacing;
+			const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
+			ALudoProjectBlock* NewBlock;
+			if (BPBlockClass.Get())
+			{
+				NewBlock = GetWorld()->SpawnActor<ALudoProjectBlock>(BPBlockClass, BlockLocation, FRotator(0, 0, 0));
+			}
+			else
+			{
+				NewBlock = GetWorld()->SpawnActor<ALudoProjectBlock>(BlockLocation, FRotator(0, 0, 0));
+			}
 
-		// Make position vector, offset from Grid location
-		const FVector BlockLocation = FVector(XOffset, YOffset, 0.f) + GetActorLocation();
-
-		// Spawn a block
-		ALudoProjectBlock* NewBlock;
-		if (BPBlockClass.Get())
-		{
-			NewBlock = GetWorld()->SpawnActor<ALudoProjectBlock>(BPBlockClass, BlockLocation, FRotator(0, 0, 0));
-		}
-		else
-		{
-			NewBlock = GetWorld()->SpawnActor<ALudoProjectBlock>(BlockLocation, FRotator(0, 0, 0));
-		}
-
-		// Tell the block about its owner
-		if (NewBlock != nullptr)
-		{
-			NewBlock->OwningGrid = this;
+			// Tell the block about its owner
+			if (NewBlock != nullptr)
+			{
+				NewBlock->OwningGrid = this;
+				NewBlock->SetBlockStyle(Number);
+			}
 		}
 	}
+
 }
 
 

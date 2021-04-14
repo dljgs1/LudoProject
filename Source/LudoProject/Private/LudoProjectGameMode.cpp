@@ -14,8 +14,10 @@ ALudoProjectGameMode::ALudoProjectGameMode()
 	DefaultPawnClass = ALudoProjectPawn::StaticClass();
 	// use our own player controller class
 	PlayerControllerClass = ALudoProjectPlayerController::StaticClass();
-
 	GameStateClass = ALudoGameState::StaticClass();
+
+	RouteClass = ALudoProjectBlock::StaticClass();
+	PieceClass = APieceCharacter::StaticClass();
 }
 
 class VectorHelper
@@ -92,6 +94,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 				int32 Num = (int32)(TxtData[i] - '0');
 				NumArray.Add(Num);
 			}
+			// Parking nodes:
 			if (TxtData[i] >= 'a' && TxtData[i] <= 'z')
 			{
 				int32 Num = -(int32)(TxtData[i] - 'a');
@@ -99,10 +102,10 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 			}
 		}
 		Size = (int32)FMath::Sqrt(NumArray.Num());
-		for (int x = 0; x < Size; x++)
+		for (int32 x = 0; x < Size; x++)
 		{
 			TArray<int32> Row;
-			for (int y = 0; y < Size; y++)
+			for (int32 y = 0; y < Size; y++)
 			{
 				Row.Add(NumArray[x + y * Size]);
 			}
@@ -199,13 +202,47 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 			ULudoRoute* Temp = VisitNodes.FindRef(NumArray[i]);
 			if (Temp)
 			{
-				StartPoints.Add(Temp);
+				StartPoints.Emplace(i+1, Temp); // campid : point
+				Parkings.Emplace(i + 1, TArray<ULudoRoute*>());
 			}
 		}
 	} while (0);
+	// 停机场初始化
+	for (int32 x = 0; x < MapWidth; x++)
+	{
+		for (int32 y = 0; y < MapWidth; y++)
+		{
+			if (MapArray[x][y] < 0)
+			{
+				ULudoRoute* Node = NewObject<ULudoRoute>();
+				VectorHelper Vec(x, y);
+				int32 Number = -MapArray[x][y];
+				Node->SetInfo(x, y, ERouteType::EParking);
+				RouteMap.Add(Vec.ToIndex(), Node);
+				if (StartPoints.Contains(Number))
+				{
+					Node->AddRoute(StartPoints.FindRef(Number));
+				}
+				if (Parkings.Contains(Number))
+				{
+					Parkings.Find(Number)->Add(Node);
+				}
+				MapArray[x][y] = (int32)ERouteType::EParking;
+			}
+		}
+	}
 }
+
+
+
+
+
 
 ULudoRoute* ALudoProjectGameMode::GetRoute(int32 x, int32 y)
 {
-	return nullptr;
+	int32 Index = VectorHelper(x, y).ToIndex();
+	return RouteMap.FindRef(Index);
 }
+
+
+

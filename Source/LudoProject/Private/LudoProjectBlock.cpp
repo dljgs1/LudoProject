@@ -69,7 +69,7 @@ void ALudoProjectBlock::OnFingerPressedBlock(ETouchIndex::Type FingerIndex, UPri
 
 void ALudoProjectBlock::HandleClicked()
 {
-	// Check we are not already active
+	// todo:逻辑判断是否可点击
 	if (!bIsActive)
 	{
 		bIsActive = true;
@@ -85,22 +85,15 @@ void ALudoProjectBlock::HandleClicked()
 	}
 }
 
+void ALudoProjectBlock::SetGridPos(int32 x, int32 y)
+{
+	GridX = x;
+	GridY = y;
+}
+
 void ALudoProjectBlock::Highlight(bool bOn)
 {
-	// Do not highlight if the block has already been activated.
-	if (bIsActive)
-	{
-		return;
-	}
-
-	if (bOn)
-	{
-		BlockMesh->SetMaterial(0, BaseMaterial);
-	}
-	else
-	{
-		BlockMesh->SetMaterial(0, BlueMaterial);
-	}
+	// 鼠标扫过
 }
 
 void ALudoProjectBlock::SetBlockStyle(int32 type)

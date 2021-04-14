@@ -37,4 +37,5 @@ public:
 	ULudoRoute(int32 _x, int32 _y, ERouteType _type);
 	void SetInfo(int32 _x, int32 _y, ERouteType _type);
 	void AddRoute(ULudoRoute*);
+	void BindBlock(ALudoProjectBlock*);
 };

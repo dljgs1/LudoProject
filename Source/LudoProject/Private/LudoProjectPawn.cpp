@@ -81,10 +81,6 @@ void ALudoProjectPawn::TraceForBlock(const FVector& Start, const FVector& End, b
 		ALudoProjectBlock* HitBlock = Cast<ALudoProjectBlock>(HitResult.Actor.Get());
 		if (CurrentBlockFocus != HitBlock)
 		{
-			if (CurrentBlockFocus)
-			{
-				CurrentBlockFocus->Highlight(false);
-			}
 			if (HitBlock)
 			{
 				HitBlock->Highlight(true);
@@ -94,7 +90,6 @@ void ALudoProjectPawn::TraceForBlock(const FVector& Start, const FVector& End, b
 	}
 	else if (CurrentBlockFocus)
 	{
-		CurrentBlockFocus->Highlight(false);
 		CurrentBlockFocus = nullptr;
 	}
 }

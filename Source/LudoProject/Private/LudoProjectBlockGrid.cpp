@@ -65,6 +65,10 @@ void ALudoProjectBlockGrid::BeginPlay()
 			if (NewBlock != nullptr)
 			{
 				NewBlock->OwningGrid = this;
+				if (ULudoRoute* Route = CurGameMode->GetRoute(x, y))
+				{
+					Route->BindBlock(NewBlock);
+				}
 				NewBlock->SetBlockStyle(Number);
 			}
 		}

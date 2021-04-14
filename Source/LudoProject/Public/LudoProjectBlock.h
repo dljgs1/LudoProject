@@ -23,7 +23,8 @@ class ALudoProjectBlock : public AActor
 	/** StaticMesh component for the clickable block */
 	UPROPERTY(Category = Block, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* BlockMesh;
-
+	int32 GridX;
+	int32 GridY;
 public:
 	ALudoProjectBlock();
 
@@ -61,7 +62,7 @@ public:
 	void OnFingerPressedBlock(ETouchIndex::Type FingerIndex, UPrimitiveComponent* TouchedComponent);
 
 	void HandleClicked();
-
+	void SetGridPos(int32 x, int32 y);
 	void Highlight(bool bOn);
 
 public:

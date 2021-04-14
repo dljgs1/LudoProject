@@ -27,3 +27,8 @@ void ULudoRoute::AddRoute(ULudoRoute* OtherRoute)
 {
 	Next.Add(OtherRoute);
 }
+
+void ULudoRoute::BindBlock(ALudoProjectBlock*TargetBlock)
+{
+	Block = TargetBlock;
+}

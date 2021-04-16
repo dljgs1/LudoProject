@@ -22,6 +22,9 @@ public:
 	// 棋子高度
 	UPROPERTY(Category = Ludo, EditAnywhere, BlueprintReadWrite)
 		float pieceHeight = 50.0f;
+	// 棋子高度
+	UPROPERTY(Category = Ludo, EditAnywhere, BlueprintReadWrite)
+		uint8 MaxPlayerNum = 4;
 
 
 	/// <summary>

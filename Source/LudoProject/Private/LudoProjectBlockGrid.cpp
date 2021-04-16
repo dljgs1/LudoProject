@@ -4,7 +4,6 @@
 #include "Components/TextRenderComponent.h"
 #include "Engine/World.h"
 #include "HAL/PlatformFilemanager.h"
-#include "FileHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "LudoProjectGameMode.h"
 

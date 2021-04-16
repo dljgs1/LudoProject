@@ -1,7 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GameLogic/PieceCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
+#include "LudoProjectGameMode.h"
 
 APieceCharacter::APieceCharacter()
 {
@@ -35,6 +38,9 @@ APieceCharacter::APieceCharacter()
 	HeadMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	HeadMesh->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 	HeadMesh->SetupAttachment(DummyRoot);
+
+	HeadMesh->OnClicked.AddDynamic(this, &APieceCharacter::HandleClicked);
+	HeadMesh->OnInputTouchBegin.AddDynamic(this, &APieceCharacter::HandleClicked);
 }
 
 void APieceCharacter::Init(int32 _x, int32 _y, uint8 _camp)
@@ -49,32 +55,67 @@ void APieceCharacter::Init(int32 _x, int32 _y, uint8 _camp)
 	}
 }
 
-void APieceCharacter::HandlePick(bool isPick)
+void APieceCharacter::HandleClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
 {
-	if (isPick == bPick)return;
-	if (isPick)
-	{
-		SetActorLocation(GetActorLocation() + FVector(0.0, 0.0, PickHeight));
-		bPick = true;
-	}
-	else
-	{
-		SetActorLocation(GetActorLocation() - FVector(0.0, 0.0, PickHeight));
-		bPick = false;
-	}
+	if (state != EPieceState::EActive)return;
+	GoSteps(4);
+	return;
 }
 
 void APieceCharacter::MoveToRoute(ULudoRoute* Target)
 {
 	ALudoProjectBlock* Block = Target->Block;
-	FVector TargetVec = Block->GetActorLocation() - this->GetActorLocation();
+	TargetVec = Block->GetActorLocation() - this->GetActorLocation();
 	TargetVec.Z = 0.0f;
-	AddMovementInput(TargetVec, 1.0, true);
+	MoveProgress = 0.0f;
 }
 
 void APieceCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (state == EPieceState::EFlying)
+	{
+		float rate = DeltaSeconds * FlySpeed;
+		MoveProgress += rate;
+		if (MoveProgress > 1.0f)
+		{
+			rate -= MoveProgress - 1.0f;
+		}
+		AddMovementInput(TargetVec, rate, true);
+		if (MoveProgress >= 1.0f)
+		{
+			GoSteps(ResSteps - 1);
+		}
+	}
 
+}
 
+void APieceCharacter::GoSteps(uint8 StepNum)
+{
+	if (StepNum > 0)
+	{
+		state = EPieceState::EFlying;
+		ResSteps = StepNum;
+		ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		ULudoRoute* CurRoute = CurGameMode->GetRoute(x, y);
+		// 选择下一个点
+		uint8 DestRoute = camp + (int32)ERouteType::EFinalP1;
+		ULudoRoute* NextRoute = nullptr;
+		for (uint8 i = 0;i<CurRoute->Next.Num();i++)
+		{
+			NextRoute = CurRoute->Next[i];
+			if ((int32)CurRoute->Next[i]->Type == DestRoute)
+			{
+				break;
+			}
+		}
+		if (NextRoute)
+		{
+			MoveToRoute(NextRoute);
+		}
+	}
+	else
+	{
+		state = EPieceState::EActive;
+	}
 }

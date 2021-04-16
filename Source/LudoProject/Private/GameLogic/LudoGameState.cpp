@@ -12,6 +12,7 @@ ALudoGameState::ALudoGameState()
 
 void ALudoGameState::StartGame(int32 PlayerNum)
 {
+	CurState = EGameState::EStart;
 	for (int32 i = 0; i < Pieces.Num(); i++)
 	{
 		Pieces[i]->K2_DestroyActor();
@@ -55,9 +56,14 @@ bool ALudoGameState::IsInIdle()
 	return true;
 }
 
-void ALudoGameState::TurnPlayer(uint8 camp)
+void ALudoGameState::TurnPlayer()
 {
-	CurPlayer = camp;
+	ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (CurGameMode)
+	{
+		CurPlayer++;
+		CurPlayer = CurPlayer % CurGameMode->MaxPlayerNum;
+	}
 	CurPiece = nullptr;
 	// todo 自动选子
 }

@@ -7,6 +7,19 @@
 #include "GameLogic/PieceCharacter.h"
 #include "LudoGameState.generated.h"
 
+UENUM()
+enum class EGameState : int32
+{
+	EEmpty = 0,
+	EStart = 1, // 开始
+	EDice = 2, // 等待摇点
+	EWaitChoice = 3, // 等待用户选择
+	EAI = 4, // 
+	EWin = 5,
+	EBusy = 6, // 忙碌（不可操作）
+};
+
+
 /** GameMode class to specify pawn and playercontroller */
 UCLASS(minimalapi)
 class ALudoGameState : public AGameStateBase
@@ -16,17 +29,20 @@ class ALudoGameState : public AGameStateBase
 	uint8 CurPlayer = 0;
 	APieceCharacter* CurPiece = nullptr;
 public:
+	UPROPERTY(BlueprintReadWrite)
+	EGameState CurState;
 	ALudoGameState();
 	// 开始一局游戏
 	UFUNCTION(BlueprintCallable)
 	void StartGame(int32 PlayerNum);
 
 	// 是否处于闲置状态 可以进行新操作
+	UFUNCTION(BlueprintCallable)
 	bool IsInIdle();
 
-	// 激活某个角色
+	// 激活下个角色
 	UFUNCTION(BlueprintCallable)
-		void TurnPlayer(uint8 camp);
+		void TurnPlayer();
 	// 选择棋子
 	UFUNCTION(BlueprintCallable)
 		bool PickPiece(int32 x, int32 y);

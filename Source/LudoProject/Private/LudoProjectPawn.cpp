@@ -2,6 +2,7 @@
 
 #include "LudoProjectPawn.h"
 #include "LudoProjectBlock.h"
+#include "GameLogic/PieceCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -78,12 +79,12 @@ void ALudoProjectPawn::TraceForBlock(const FVector& Start, const FVector& End, b
 	}
 	if (HitResult.Actor.IsValid())
 	{
-		ALudoProjectBlock* HitBlock = Cast<ALudoProjectBlock>(HitResult.Actor.Get());
+		APieceCharacter* HitBlock = Cast<APieceCharacter>(HitResult.Actor.Get());
 		if (CurrentBlockFocus != HitBlock)
 		{
-			if (HitBlock)
+			if (CurrentBlockFocus)
 			{
-				HitBlock->Highlight(true);
+				CurrentBlockFocus->HandleClicked(false);
 			}
 			CurrentBlockFocus = HitBlock;
 		}

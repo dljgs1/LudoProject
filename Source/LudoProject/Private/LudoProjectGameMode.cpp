@@ -4,7 +4,7 @@
 #include "LudoProjectPlayerController.h"
 #include "LudoProjectPawn.h"
 #include "HAL/PlatformFilemanager.h"
-#include "FileHelpers.h"
+#include "Misc/FileHelper.h"
 #include "GameLogic/LudoGameState.h"
 #include "LudoGameConfig.h"
 
@@ -81,7 +81,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 	FString TxtStream;
 	TArray<int32> NumArray;
 	/// 初始化地图信息
-	FString TxtPath = (FPaths::ProjectContentDir() + TEXT("MapConfig.txt"));
+	FString TxtPath = (FPaths::ProjectContentDir() + TEXT("Config/MapConfig.txt"));
 	if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*TxtPath))
 	{
 		int32 Size = 0;
@@ -97,7 +97,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 			// Parking nodes:
 			if (TxtData[i] >= 'a' && TxtData[i] <= 'z')
 			{
-				int32 Num = -(int32)(TxtData[i] - 'a');
+				int32 Num = -(int32)(TxtData[i] - 'a' + 1);
 				NumArray.Add(Num);
 			}
 		}
@@ -221,7 +221,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 				RouteMap.Add(Vec.ToIndex(), Node);
 				if (StartPoints.Contains(Number))
 				{
-					Node->AddRoute(StartPoints.FindRef(Number));
+					Node->AddRoute(*StartPoints.Find(Number));
 				}
 				if (Parkings.Contains(Number))
 				{

@@ -82,10 +82,6 @@ void ALudoProjectPawn::TraceForBlock(const FVector& Start, const FVector& End, b
 		APieceCharacter* HitBlock = Cast<APieceCharacter>(HitResult.Actor.Get());
 		if (CurrentBlockFocus != HitBlock)
 		{
-			if (CurrentBlockFocus)
-			{
-				CurrentBlockFocus->HandleClicked(false);
-			}
 			CurrentBlockFocus = HitBlock;
 		}
 	}

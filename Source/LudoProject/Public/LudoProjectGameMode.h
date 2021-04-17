@@ -31,6 +31,8 @@ public:
 	/// 
 	/// </summary>
 	TArray<TArray<int32>> MapArray; // 地图
+
+	UPROPERTY()
 	TMap<int32, ULudoRoute*> RouteMap; // 路线总图
 	TMap<uint8, ULudoRoute*> StartPoints; //开始点
 	TMap<uint8, TArray<ULudoRoute*>> Parkings; // 停机坪

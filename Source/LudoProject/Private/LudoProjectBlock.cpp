@@ -44,8 +44,8 @@ ALudoProjectBlock::ALudoProjectBlock()
 	BlockMesh->SetRelativeLocation(FVector(0.f,0.f,25.f));
 	BlockMesh->SetMaterial(0, ConstructorStatics.BlueMaterial.Get());
 	BlockMesh->SetupAttachment(DummyRoot);
-	BlockMesh->OnClicked.AddDynamic(this, &ALudoProjectBlock::BlockClicked);
-	BlockMesh->OnInputTouchBegin.AddDynamic(this, &ALudoProjectBlock::OnFingerPressedBlock);
+	// BlockMesh->OnClicked.AddDynamic(this, &ALudoProjectBlock::BlockClicked);
+	// BlockMesh->OnInputTouchBegin.AddDynamic(this, &ALudoProjectBlock::OnFingerPressedBlock);
 
 	// Save a pointer to the orange material
 	BaseMaterial = ConstructorStatics.BaseMaterial.Get();
@@ -102,6 +102,7 @@ void ALudoProjectBlock::SetBlockStyle(int32 type)
 	{
 	case ERouteType::ERoute:
 	case ERouteType::EParking:
+	case ERouteType::ETransFinal:
 		BlockMesh->SetMaterial(0, BaseMaterial);
 		break;
 	case ERouteType::EFinalP1:

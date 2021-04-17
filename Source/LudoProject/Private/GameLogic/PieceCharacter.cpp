@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "GameLogic/PieceCharacter.h"
+#include "GameLogic/LudoGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
@@ -39,8 +40,6 @@ APieceCharacter::APieceCharacter()
 	HeadMesh->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 	HeadMesh->SetupAttachment(DummyRoot);
 
-	HeadMesh->OnClicked.AddDynamic(this, &APieceCharacter::HandleClicked);
-	HeadMesh->OnInputTouchBegin.AddDynamic(this, &APieceCharacter::HandleClicked);
 }
 
 void APieceCharacter::Init(int32 _x, int32 _y, uint8 _camp)
@@ -55,36 +54,56 @@ void APieceCharacter::Init(int32 _x, int32 _y, uint8 _camp)
 	}
 }
 
-void APieceCharacter::HandleClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
+void APieceCharacter::OnClicked(UPrimitiveComponent* ClickedComp, FKey ButtonClicked)
 {
-	if (state != EPieceState::EActive)return;
-	GoSteps(4);
-	return;
+	HandleClicked();
+}
+void APieceCharacter::OnTouch(ETouchIndex::Type FingerIndex, UPrimitiveComponent* TouchedComponent)
+{
+	HandleClicked();
+}
+
+void APieceCharacter::HandleClicked()
+{
+	if (state != EPieceState::EActive && state != EPieceState::EPark)return;
+	if (ALudoGameState* GameState = Cast<ALudoGameState>(GetWorld()->GetGameState()))
+	{
+		GameState->PickPiece(this);
+	}
 }
 
 void APieceCharacter::MoveToRoute(ULudoRoute* Target)
 {
 	ALudoProjectBlock* Block = Target->Block;
-	TargetVec = Block->GetActorLocation() - this->GetActorLocation();
-	TargetVec.Z = 0.0f;
+	x = Target->x;
+	y = Target->y;
+	OriginVec = GetActorLocation();
+	TargetVec = Block->GetActorLocation();
+	TargetVec.Z = OriginVec.Z;
 	MoveProgress = 0.0f;
 }
 
 void APieceCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if (state == EPieceState::EFlying)
+	if (state == EPieceState::EFlying || bForceFly)
 	{
-		float rate = DeltaSeconds * FlySpeed;
-		MoveProgress += rate;
+		MoveProgress += DeltaSeconds * FlySpeed;
 		if (MoveProgress > 1.0f)
 		{
-			rate -= MoveProgress - 1.0f;
+			SetActorLocation(TargetVec);
+			if (bForceFly)
+			{
+				bForceFly = false;
+			}
+			else
+			{
+				GoSteps(ResSteps - 1);
+			}
 		}
-		AddMovementInput(TargetVec, rate, true);
-		if (MoveProgress >= 1.0f)
+		else
 		{
-			GoSteps(ResSteps - 1);
+			SetActorLocation((TargetVec - OriginVec) * MoveProgress + OriginVec);
 		}
 	}
 
@@ -94,19 +113,27 @@ void APieceCharacter::GoSteps(uint8 StepNum)
 {
 	if (StepNum > 0)
 	{
-		state = EPieceState::EFlying;
 		ResSteps = StepNum;
 		ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		ULudoRoute* CurRoute = CurGameMode->GetRoute(x, y);
+		if (!CurRoute)
+		{
+			return;
+		}
+		state = EPieceState::EFlying;
 		// 选择下一个点
-		uint8 DestRoute = camp + (int32)ERouteType::EFinalP1;
+		uint8 DestRoute = camp + (int32)ERouteType::EFinalP1 -1;
 		ULudoRoute* NextRoute = nullptr;
 		for (uint8 i = 0;i<CurRoute->Next.Num();i++)
 		{
-			NextRoute = CurRoute->Next[i];
 			if ((int32)CurRoute->Next[i]->Type == DestRoute)
 			{
+				NextRoute = CurRoute->Next[i];
 				break;
+			}
+			else if(CurRoute->Next[i]->Type == ERouteType::ERoute || CurRoute->Next[i]->Type == ERouteType::ETransFinal)
+			{
+				NextRoute = CurRoute->Next[i];
 			}
 		}
 		if (NextRoute)
@@ -117,5 +144,38 @@ void APieceCharacter::GoSteps(uint8 StepNum)
 	else
 	{
 		state = EPieceState::EActive;
+		OnStepOver();
+	}
+}
+
+void APieceCharacter::OnStepOver()
+{
+	if (ALudoGameState* GameState = Cast<ALudoGameState>(GetWorld()->GetGameState()))
+	{
+		GameState->OnFlyDone();
+	}
+}
+
+void APieceCharacter::HardReset(int32 _x, int32 _y, EPieceState _state, bool withAnimate)
+{
+	x = _x;
+	y = _y;
+	state = _state;
+	if (ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		if (ULudoRoute* Route = CurGameMode->GetRoute(x, y))
+		{
+			if (withAnimate)
+			{
+				bForceFly = true;
+				MoveToRoute(Route);
+			}
+			else
+			{
+				FVector Loc = Route->Block->GetActorLocation();
+				Loc.Z = GetActorLocation().Z;
+				SetActorLocation(Loc);
+			}
+		}
 	}
 }

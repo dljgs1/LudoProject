@@ -80,6 +80,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 	Super::InitGame(MapName, Options, ErrorMessage);
 	FString TxtStream;
 	TArray<int32> NumArray;
+	TMap<int32, VectorHelper> StartMap;
 	/// 初始化地图信息
 	FString TxtPath = (FPaths::ProjectContentDir() + TEXT("Config/MapConfig.txt"));
 	if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*TxtPath))
@@ -100,6 +101,12 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 				int32 Num = -(int32)(TxtData[i] - 'a' + 1);
 				NumArray.Add(Num);
 			}
+			if (TxtData[i] >= 'A' && TxtData[i] <= 'Z')
+			{
+				int32 Num = -(int32)(TxtData[i] - 'A' + 1)-100;
+
+				NumArray.Add(Num);
+			}
 		}
 		Size = (int32)FMath::Sqrt(NumArray.Num());
 		for (int32 x = 0; x < Size; x++)
@@ -107,6 +114,12 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 			TArray<int32> Row;
 			for (int32 y = 0; y < Size; y++)
 			{
+				if (NumArray[x + y * Size] < -100)
+				{
+					VectorHelper Temp(x, y);
+					StartMap.Emplace(-(NumArray[x + y * Size] + 100), Temp);
+					NumArray[x + y * Size] = 1;
+				}
 				Row.Add(NumArray[x + y * Size]);
 			}
 			MapArray.Add(Row);
@@ -174,7 +187,7 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 						if (LastNumber <= (int32)ERouteType::EFinalP4 && LastNumber >= (int32)ERouteType::EFinalP1)
 						{
 							// 降落道只能连接终点或者同类降落道
-							if(TryNumber != LastNumber || TryNumber != (int32)ERouteType::EFinal)
+							if(TryNumber != LastNumber && TryNumber != (int32)ERouteType::EFinal)
 								continue;
 						}
 						int32 TryIndex = TryNode.ToIndex();
@@ -196,14 +209,13 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 				}
 			}
 		}
-		NumArray = { MyConfig->P1Start, MyConfig->P2Start, MyConfig->P3Start, MyConfig->P4Start};
-		for (int32 i = 0;i<NumArray.Num();i++)
+		// NumArray = { MyConfig->P1Start, MyConfig->P2Start, MyConfig->P3Start, MyConfig->P4Start};
+		for (TPair<int32, VectorHelper>&Var : StartMap)
 		{
-			ULudoRoute* Temp = VisitNodes.FindRef(NumArray[i]);
-			if (Temp)
+			if (ULudoRoute* Temp = VisitNodes.FindRef(Var.Value.ToIndex()))
 			{
-				StartPoints.Emplace(i+1, Temp); // campid : point
-				Parkings.Emplace(i + 1, TArray<ULudoRoute*>());
+				StartPoints.Emplace(Var.Key, Temp); // campid : point
+				Parkings.Emplace(Var.Key, TArray<ULudoRoute*>());
 			}
 		}
 	} while (0);
@@ -241,7 +253,11 @@ void ALudoProjectGameMode::InitGame(const FString& MapName, const FString& Optio
 ULudoRoute* ALudoProjectGameMode::GetRoute(int32 x, int32 y)
 {
 	int32 Index = VectorHelper(x, y).ToIndex();
-	return RouteMap.FindRef(Index);
+	if (auto* ptr = RouteMap.Find(Index))
+	{
+		return *ptr;
+	}
+	return nullptr;
 }
 
 

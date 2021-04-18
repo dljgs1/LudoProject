@@ -37,9 +37,9 @@ class ALudoGameState : public AGameStateBase
 	UPROPERTY()
 		TMap<uint8, bool> InitMap;
 
-	bool GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArray);
 
 public:
+	bool GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArray);
 	UPROPERTY(BlueprintReadOnly)
 		uint8 CurDiceNum;
 	UPROPERTY(BlueprintReadWrite)

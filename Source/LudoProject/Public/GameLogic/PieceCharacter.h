@@ -44,7 +44,7 @@ public:
 		class UStaticMeshComponent* HeadMesh;
 	UPROPERTY(Category = Ludo, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		float PickHeight = 20.0f; // 棋子被拿起后的高度
-	UPROPERTY(Category = Ludo, BlueprintReadWrite)
+	UPROPERTY(Category = Ludo, VisibleDefaultsOnly, BlueprintReadWrite)
 		float FlySpeed = 1.0f; // 棋子飞的速度 格/秒
 	UPROPERTY(Category = Ludo, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		TArray< UMaterialInstance*>  PlayerMaterials; //不同角色对应的材质

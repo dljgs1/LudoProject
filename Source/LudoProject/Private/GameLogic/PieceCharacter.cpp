@@ -75,11 +75,19 @@ void APieceCharacter::HandleClicked()
 void APieceCharacter::MoveToRoute(ULudoRoute* Target)
 {
 	ALudoProjectBlock* Block = Target->Block;
-	x = Target->x;
-	y = Target->y;
 	OriginVec = GetActorLocation();
 	TargetVec = Block->GetActorLocation();
 	TargetVec.Z = OriginVec.Z;
+	if (ALudoGameState* GameState = Cast<ALudoGameState>(GetWorld()->GetGameState()))
+	{
+		TArray<APieceCharacter*> OutArray;
+		if (GameState->GetPiece(x, y, OutArray))
+		{
+			TargetVec.X += (OutArray.Num()% 2 ? 20 : -20) * OutArray.Num();
+		}
+	}
+	x = Target->x;
+	y = Target->y;
 	MoveProgress = 0.0f;
 }
 

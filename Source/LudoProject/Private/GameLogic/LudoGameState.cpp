@@ -18,6 +18,7 @@ bool ALudoGameState::GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArr
 		if (Piece->x == x && Piece->y == y)
 		{
 			OutArray.Add(Piece);
+			Ret = true;
 		}
 	}
 	return Ret;
@@ -124,7 +125,7 @@ bool ALudoGameState::PickPiece(APieceCharacter* Piece)
 		GoPiece();
 		return true;
 	}
-	if (CurState == EGameState::EWaitChoice)
+	if (CurState == EGameState::EWaitChoice && Piece->camp == CurPlayer)
 	{
 		if (Piece->state != EPieceState::EFlying && Piece->state != EPieceState::EArrived)
 		{
@@ -136,6 +137,12 @@ bool ALudoGameState::PickPiece(APieceCharacter* Piece)
 				}
 				else
 				{
+					if (GetUsefulPieces().Num() == 0)
+					{
+						// 如果没有可用棋子且并非6点 那么轮空
+						TurnPlayer();
+						return true;
+					}
 					return false;
 				}
 			}
@@ -149,10 +156,6 @@ bool ALudoGameState::PickPiece(APieceCharacter* Piece)
 
 bool ALudoGameState::GoPiece()
 {
-	if (CurDiceNum == 6)
-	{
-		// TODO：奖励下一次继续
-	}
 	UpdateState(EGameState::EBusy);
 	if (CurPiece)
 	{
@@ -195,7 +198,7 @@ void ALudoGameState::OnFlyDone()
 		TArray<APieceCharacter*> Temp;
 		for (auto& Park : CurGameMode->Parkings[OutPieces[DelIndex]->camp])
 		{
-			if (GetPiece(Park->x, Park->y, Temp))
+			if (!GetPiece(Park->x, Park->y, Temp))
 			{
 				OutPieces[DelIndex]->HardReset(Park->x, Park->y, EPieceState::EPark);
 				DelIndex++;

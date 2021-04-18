@@ -31,6 +31,7 @@ private:
 	FVector OriginVec; // 出发点
 	float MoveProgress = 0.0f; // 当前移动进度
 	bool bForceFly = false; // 强制飞行
+
 public:
 	int32 x;
 	int32 y;
@@ -38,7 +39,7 @@ public:
 	uint8 camp; // 阵营
 	EPieceState state = EPieceState::EPark;
 	bool bPick = false;
-
+	bool bFinal = false;
 	/** StaticMesh component for the clickable block */
 	UPROPERTY(Category = Ludo, VisibleDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* HeadMesh;

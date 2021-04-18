@@ -37,8 +37,15 @@ class ALudoGameState : public AGameStateBase
 	UPROPERTY()
 		TMap<uint8, bool> InitMap;
 
+	TArray<int32>PieceState;
+	uint8 LastDiceNum;
 
+	void SaveState();
 public:
+
+	UFUNCTION(BlueprintCallable)
+	void LoadState();
+
 	bool GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArray);
 	UPROPERTY(BlueprintReadOnly)
 		uint8 CurDiceNum;
@@ -80,6 +87,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void OnFlyDone();
 
+	// 人数
+	UFUNCTION(BlueprintCallable)
+		void OnLose();
 
 	//////////////////// AI工具类 ———— AI 只需要根据骰子随机移动棋子即可 不需要策略
 	
@@ -90,7 +100,6 @@ public:
 	// 获取可用棋子
 	UFUNCTION(BlueprintCallable)
 		TArray<APieceCharacter*> GetUsefulPieces();
-
 
 
 

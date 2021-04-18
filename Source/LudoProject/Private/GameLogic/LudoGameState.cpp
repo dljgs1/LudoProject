@@ -10,6 +10,33 @@ ALudoGameState::ALudoGameState()
 
 }
 
+void ALudoGameState::SaveState()
+{
+	PieceState = TArray< int32>();
+	for (int32 i = 0; i < Pieces.Num(); i++)
+	{
+		PieceState.Add((int32)Pieces[i]->state * 10000 + Pieces[i]->x * 100 + Pieces[i]->y);
+	}
+	LastDiceNum = CurDiceNum;
+}
+
+void ALudoGameState::LoadState()
+{
+	if (PieceState.Num() == 0)return;
+	for (int32 i = 0; i < PieceState.Num(); i++)
+	{
+		int32 Pos = PieceState[i] % 10000;
+		int32 x = Pos / 100;
+		int32 y = Pos % 100;
+		int32 st = PieceState[i] / 10000;
+		Pieces[i]->HardReset(x, y, (EPieceState)st, false);
+	}
+	PieceState.Empty();
+	CurPlayer = MainPlayerCamp;
+	CurDiceNum = LastDiceNum;
+	UpdateState(EGameState::EWaitChoice);
+}
+
 bool ALudoGameState::GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArray)
 {
 	bool Ret = false;
@@ -26,13 +53,15 @@ bool ALudoGameState::GetPiece(uint8 x, uint8 y, TArray<APieceCharacter*>& OutArr
 void ALudoGameState::StartGame(int32 PlayerNum)
 {
 	MainPlayerCamp = 0;
-	UpdateState(EGameState::EStart);
 	CurDiceNum = 1;
 	InitMap.Empty();
+	PieceState.Empty();
+	CurState = EGameState::EStart;
 	for (int32 i = 0; i < Pieces.Num(); i++)
 	{
 		Pieces[i]->K2_DestroyActor();
 	}
+	Pieces.Empty();
 
 	ALudoProjectGameMode* CurGameMode = Cast<ALudoProjectGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (!CurGameMode)
@@ -58,6 +87,7 @@ void ALudoGameState::StartGame(int32 PlayerNum)
 			}
 		}
 	}
+
 }
 
 bool ALudoGameState::IsInIdle()
@@ -131,11 +161,7 @@ bool ALudoGameState::PickPiece(APieceCharacter* Piece)
 		{
 			if (Piece->state == EPieceState::EPark)
 			{
-				if (CurDiceNum == 6)
-				{
-					CurDiceNum = 1;
-				}
-				else
+				if (CurDiceNum != 6)
 				{
 					if (GetUsefulPieces().Num() == 0)
 					{
@@ -156,10 +182,22 @@ bool ALudoGameState::PickPiece(APieceCharacter* Piece)
 
 bool ALudoGameState::GoPiece()
 {
+	// 记录当前棋子位置与状态
+	if (CurPlayer == MainPlayerCamp)
+	{
+		SaveState();
+	}
 	UpdateState(EGameState::EBusy);
 	if (CurPiece)
 	{
-		CurPiece->GoSteps(CurDiceNum);
+		if (CurPiece->state == EPieceState::EPark)
+		{
+			CurPiece->GoSteps(1);
+		}
+		else
+		{
+			CurPiece->GoSteps(CurDiceNum);
+		}
 	}
 	return true;
 }
@@ -168,7 +206,6 @@ void ALudoGameState::UpdateState(EGameState NewState)
 {
 	CurState = NewState;
 	OnStateUpdate.Broadcast();
-	// 记录当前棋子位置与状态
 }
 
 void ALudoGameState::SetDice(uint8 step)
@@ -212,6 +249,7 @@ void ALudoGameState::OnFlyDone()
 		TArray<APieceCharacter*> Temp;
 		if (GetPiece(CurPiece->x, CurPiece->y, Temp))
 		{
+			// 检查胜利
 			if (Temp.Num() == 4)
 			{
 				if (CurPiece->camp == MainPlayerCamp)
@@ -239,6 +277,15 @@ void ALudoGameState::OnFlyDone()
 }
 
 
+
+void ALudoGameState::OnLose()
+{
+	for (int32 i = 0; i < Pieces.Num(); i++)
+	{
+		Pieces[i]->HardReset(Pieces[i]->x, Pieces[i]->y, Pieces[i]->state == EPieceState::EFlying ? EPieceState::EActive : Pieces[i]->state, false);
+	}
+	UpdateState(EGameState::ELose);
+}
 
 TArray<APieceCharacter*> ALudoGameState::GetParkingPieces()
 {

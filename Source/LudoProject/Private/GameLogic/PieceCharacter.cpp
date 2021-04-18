@@ -81,7 +81,7 @@ void APieceCharacter::MoveToRoute(ULudoRoute* Target)
 	if (ALudoGameState* GameState = Cast<ALudoGameState>(GetWorld()->GetGameState()))
 	{
 		TArray<APieceCharacter*> OutArray;
-		if (GameState->GetPiece(x, y, OutArray))
+		if (GameState->GetPiece(Target->x, Target->y, OutArray))
 		{
 			TargetVec.X += (OutArray.Num()% 2 ? 20 : -20) * OutArray.Num();
 		}
@@ -89,6 +89,10 @@ void APieceCharacter::MoveToRoute(ULudoRoute* Target)
 	x = Target->x;
 	y = Target->y;
 	MoveProgress = 0.0f;
+	if (Target->Type == ERouteType::EFinal)
+	{
+		bFinal = true;
+	}
 }
 
 void APieceCharacter::Tick(float DeltaSeconds)
@@ -111,7 +115,7 @@ void APieceCharacter::Tick(float DeltaSeconds)
 		}
 		else
 		{
-			SetActorLocation((TargetVec - OriginVec) * MoveProgress + OriginVec);
+			SetActorLocation((TargetVec - OriginVec) * MoveProgress + OriginVec + FVector(0.0f, 0.0f, 50.f) * sin(MoveProgress * PI) );
 		}
 	}
 
@@ -134,7 +138,7 @@ void APieceCharacter::GoSteps(uint8 StepNum)
 		ULudoRoute* NextRoute = nullptr;
 		for (uint8 i = 0;i<CurRoute->Next.Num();i++)
 		{
-			if ((int32)CurRoute->Next[i]->Type == DestRoute)
+			if ((int32)CurRoute->Next[i]->Type == DestRoute || CurRoute->Next[i]->Type == ERouteType::EFinal)
 			{
 				NextRoute = CurRoute->Next[i];
 				break;
@@ -158,10 +162,15 @@ void APieceCharacter::GoSteps(uint8 StepNum)
 
 void APieceCharacter::OnStepOver()
 {
+	if (bFinal)
+	{
+		state = EPieceState::EArrived;
+	}
 	if (ALudoGameState* GameState = Cast<ALudoGameState>(GetWorld()->GetGameState()))
 	{
 		GameState->OnFlyDone();
 	}
+
 }
 
 void APieceCharacter::HardReset(int32 _x, int32 _y, EPieceState _state, bool withAnimate)

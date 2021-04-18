@@ -117,6 +117,9 @@ void ALudoProjectBlock::SetBlockStyle(int32 type)
 	case ERouteType::EFinalP4:
 		BlockMesh->SetMaterial(0, OrangeMaterial);
 		break;
+	case ERouteType::EFinal:
+		BlockMesh->SetMaterial(0, BlackMaterial);
+		break;
 	default:
 		break;
 	}
